@@ -1,0 +1,120 @@
+# basic instructions to run the application in a python virtual environment.
+
+
+# ensure your OS has node/npm installed; on ubuntu 18.04:
+sudo apt install libssl1.0-dev
+sudo apt install nodejs-dev
+sudo apt install node-gyp
+sudo apt install npm
+
+# install bower
+npm install -g bower
+
+
+# clone code
+git clone https://gitlab.doc.ic.ac.uk/gcorrall/phdadmissions-project.git
+
+
+# create virtualenv
+cd phdadmissions-project
+python3 -m venv env
+. env/bin/activate
+
+
+cd website
+mkdir assets/logs/
+
+
+
+pip install -r requirements.txt 
+
+
+# edit config settings
+
+vi assets/settings.py 
+
+# set a random secret key
+SECRET_KEY = 'sfsdfsdfwerSDFSrwersdfrsdsjoDDIERR'
+
+# enter database settings; here using sqlite for devlopment, postgres for production
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        #'NAME': 'phdadmissions_db',
+        #'USER': 'django_user',
+        #'PASSWORD': 'password',
+        #'HOST': 'localhost',
+        #'PORT': '5432',
+    }
+}
+
+
+# change the authentication backend; you won't be able to use LDAP from off campus, and without a 'binding' user
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    #'django_python3_ldap.auth.LDAPBackend'
+)
+
+# ensure LDAP times out
+LDAP_AUTH_CONNECT_TIMEOUT = 3
+LDAP_AUTH_RECEIVE_TIMEOUT = 3
+
+
+# other debug settings
+
+COMPRESS_ENABLED = False
+
+DEBUG = True
+
+
+# set up the migrations
+
+python  manage.py makemigrations authentication
+python  manage.py makemigrations phdadmissions
+
+python manage.py migrate
+
+
+# install js libraries
+bower install
+
+
+# create an admin user; e.g
+python manage.py create_admin gcorrall gcorrall@imperial.ac.uk Gary Corrall -p
+
+
+# start dev server
+python manage.py runserver
+
+
+
+# note 'Synchronising Staff Members' won't work; you need to be on the College network and to populate the LDAP_AUTH_CONNECTION_USERNAME and LDAP_AUTH_CONNECTION_PASSWORD fields with valid details. Then you could run:
+
+python manage.py ldap_sync_users
+
+# otherwise you could manually populate the database
+
+# the email settings can be set if you want to test this functionality. I use mailhog for testing (https://github.com/mailhog/MailHog). In production it points to the College smtp servers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
